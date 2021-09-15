@@ -1,20 +1,41 @@
 #include <stdio.h>
 #include "text_storage.h"
-#include "unit_testing.h"
+#include <string.h>
 
-int main(){
+int main(int argc, char const * const argv[]){
+
+	int is_only_alnum_sorting = 0;
+
+	for(int i = 1; i < argc; i++){
+		if(strcmp("-help", argv[i]) == 0){
+			show_help();
+			return 0;
+		}
+		else if(strcmp("-alnum", argv[i]) == 0){
+			is_only_alnum_sorting = 1;
+		}
+	}
 
 	text_storage storage;
+	
+	get_text_storage("test.txt", &storage);
+	
+	qsort2((void**)storage.p_lines, 0, storage.num_lines-1, sizeof storage.p_lines[0], (int (*)(void*, void*))strcmp);
+	
+	FILE *output_file = fopen("output.txt", "w");
 
-	size_t q = 100;
+	fputs("\nSORTED TEXT\n\n", output_file);
+    
+	write_storage(output_file, &storage);
 
-	printf("%d\n", get_text_storage("test.txt", &storage));
+	qsort2((void**)storage.p_lines, 0, storage.num_lines-1, sizeof storage.p_lines[0], (int (*)(void*, void*))strcmp_reverse);
 
-	printf("%d|%d|", storage.num_lines, storage.len_buf);
-	char *arr2[] = {"bad", "abc"};
+	fputs("\nREVERSE_SORTED TEXT\n\n", output_file);
+    
+	write_storage(output_file, &storage);
 
-	qsort2((void **)arr2, 0, 1, (int (*)(const void *, const void *))strcmp);
-
-	printf("%s\n%s", arr2[0], arr2[1]);
+	fputs("\nORIGINAL TEXT\n\n", output_file);
+	write_buffer_of_storage(output_file, &storage);
+	
 	return 0;
 }

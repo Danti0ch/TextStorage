@@ -1,0 +1,21 @@
+
+SORTED TEXT
+
+aefgh
+bdefg
+ccdef
+dbcde
+
+REVERSE_SORTED TEXT
+
+dbcde
+ccdef
+bdefg
+aefgh
+
+ORIGINAL TEXT
+
+aefgh
+bdefg
+ccdef
+dbcde
