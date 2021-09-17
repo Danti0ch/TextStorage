@@ -6,24 +6,29 @@
 
 #include "text_storage.h"
 
-enum func_codes storage_destructor(text_storage *storage){
+enum func_codes clear_mem_storage(text_storage *storage){
 
     assert(storage != NULL);
     
+    assert(storage->p_lines != NULL);
+    assert(storage->buffer != NULL);
+
     free(storage->p_lines);
     free(storage->buffer);
+
+    return OK;
 }
 
-enum func_codes storage_constructor(text_storage *storage){
+enum func_codes create_mem_storage(text_storage *storage){
+
     assert(storage != NULL);
 
     assert(storage->len_buf > 0);
     assert(storage->num_lines > 0);
     
-    storage_destructor(storage);
-
     storage->buffer = (char*)calloc(storage->len_buf, sizeof(char));
-    storage->p_lines = (char**)calloc(storage->num_lines, sizeof(char*));
+
+    storage->p_lines = (string*)calloc(storage->num_lines, sizeof(string));
 
     if((storage->buffer == NULL) || (storage->p_lines == NULL)){
         return MEM_ALLOC_ERROR;
@@ -38,7 +43,6 @@ enum func_codes get_text_storage(const char *file_name, text_storage *storage){
     
     assert(file_name != NULL);
 
-    //обработка ошибок
     enum func_codes getting_len_result = get_file_len(file_name, &(storage->num_lines), &(storage->len_buf));
 
     if(getting_len_result != OK){
@@ -49,47 +53,44 @@ enum func_codes get_text_storage(const char *file_name, text_storage *storage){
         return EMPTY_FILE;
     }
 
-    enum func_codes mem_for_storage_result = storage_constructor(storage);
+    enum func_codes mem_for_storage_result = create_mem_storage(storage);
 
     if(mem_for_storage_result != OK){
         return mem_for_storage_result;
     }
 
-    if((storage->buffer == NULL) || (storage->p_lines == NULL)){
-        return MEM_ALLOC_ERROR;
-    }
-
     FILE *input_file = fopen(file_name, "r");
 
-    if(input_file == NULL){
-        return ERROR_FILE_READING;
-    }
+    assert(input_file != NULL);
 
     int reading_status = fread(storage->buffer, sizeof storage->buffer[0], storage->len_buf, input_file);
     assert(reading_status >= 0);
 
     fclose(input_file);
 
+    storage->buffer[storage->len_buf - 1] = '\n';
+
     int is_new_line = 1;
     size_t num_line = 0;
+    size_t num_symbols_in_line = 1;
 
-    for(int ind_buf = 0; ind_buf < storage->len_buf; ind_buf++){
+    for(int ind_buf = 0; ind_buf < storage->len_buf; ind_buf++, num_symbols_in_line++){
+
         if(is_new_line){
-            storage->p_lines[num_line] = &storage->buffer[ind_buf];
+            storage->p_lines[num_line].pointer = &(storage->buffer[ind_buf]);
+
             is_new_line = 0;
         }
         if(storage->buffer[ind_buf] == '\n'){
+            storage->p_lines[num_line].len = num_symbols_in_line - 1; // '\0' не учитывается в длине строки
+
+            num_symbols_in_line = 0;
             storage->buffer[ind_buf] = '\0';
             is_new_line = 1;
+
             num_line++;
         }
     }
-
-    if(is_new_line){
-            storage->p_lines[num_line] = &storage->buffer[storage->len_buf-1];
-            is_new_line = 0;
-        }
-
     return OK;
 }
 
@@ -98,10 +99,9 @@ enum func_codes write_storage(FILE *output_file, text_storage *storage){
 
     assert(storage != NULL);
     assert(output_file != NULL);
-    //проверка, на то, что все строки lines не указывают на ноль?
 
     for(int i = 0; i < storage->num_lines; i++){
-        fputs(storage->p_lines[i], output_file);
+        fputs(storage->p_lines[i].pointer, output_file);
         fputc('\n', output_file);
     }
     return OK;
@@ -123,3 +123,89 @@ enum func_codes write_buffer_of_storage(FILE *output_file, text_storage *storage
 
     return OK;
 }
+
+
+int string_cmp_straight(const string *str1, const string *str2){
+    return string_cmp(str1, str2, STRAIGHT);    
+}    
+
+int string_cmp_reverse(const string *str1, const string *str2){
+    return string_cmp(str1, str2, REVERSE);    
+}  
+
+int string_cmp_alnum(const string *str1, const string *str2){
+    return string_cmp(str1, str2, ALNUM);    
+}
+
+int string_cmp_alnumReverse(const string *str1, const string *str2){
+    return string_cmp(str1, str2, ALNUM_REVERSE);    
+}  
+
+int string_cmp(const string *str1, const string *str2, enum sort_flags mode){
+
+    assert(str1->pointer != NULL);
+    assert(str2->pointer != NULL);
+    
+
+    if(str1->pointer == str2->pointer){
+        return 0;
+    }
+
+    assert(str1->len >= 0);
+    assert(str2->len >= 0);
+
+
+    char *str1_stepper = str1->pointer;
+    char *str2_stepper = str2->pointer;
+    
+    char *str1_beg = str1->pointer;
+    char *str2_beg = str2->pointer;
+    
+    int step = 1;
+    if((mode == REVERSE) || (mode == ALNUM_REVERSE)){
+        str1_stepper += str1->len;
+        str2_stepper += str2->len;
+
+        str1_beg += str1->len;
+        str2_beg += str2->len;
+        
+        step = -1;
+    }
+
+    int alnum_mode = 0;
+    
+    if((mode == ALNUM_REVERSE) || (mode == ALNUM)){
+        alnum_mode = 1;
+    }
+
+
+    // сравнение значений букв
+    for(; (abs(str1_stepper - str1_beg) < str1->len) && (abs(str2_stepper - str2_beg) < str2->len); str2_stepper += step, str1_stepper += step){
+    
+        if(alnum_mode){
+            while((abs(str1_stepper - str1_beg) < str1->len) && !isalnum_rus(*str1_stepper)){
+                str1_stepper += step;
+            }
+            while((abs(str2_stepper - str2_beg) < str2->len) && !isalnum_rus(*str2_stepper)){
+                str2_stepper += step;
+            }
+            if(!((abs(str1_stepper - str1_beg) < str1->len) && (abs(str2_stepper - str2_beg) < str2->len))){
+                break;
+            }
+            
+        }
+        if(*str1_stepper != *str2_stepper){
+            return (*str1_stepper) - (*str2_stepper);
+        }
+    }
+    if((abs(str1_stepper - str1_beg) >= str1->len) && ((abs(str2_stepper - str2_beg) >= str2->len))){
+        return 0;
+    }
+    else if((abs(str1_stepper - str1_beg) < str1->len)){
+        return 1;
+    }
+    else{
+        return -1;
+    }
+}
+

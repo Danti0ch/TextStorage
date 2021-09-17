@@ -3,6 +3,7 @@
  * 
  * \brief файл содержит обьявления функции сортировки произвольного массива
  */
+
 #ifndef QSORT2_H
 #define QSORT2_H
 
@@ -13,12 +14,12 @@
 /**
  * функция сортирует массив arr по компаратору comparator
  * 
- * \param arr указатель на исходный массив
- * \param left, right индексы левого и правого края подмассива, который нужно отсортировать
+ * \param arr указатель на начало массива
+ * \param arr_len длина массива
  * \param elem_size размер элемента массива
  * \param comparator компаратор
  * 
- * \return код ошибки
+ * \return код возвращаемого значения из func_codes
  */
-enum func_codes qsort2(void *arr[], const int left, const int right, const size_t elem_size, int (*comparator)(void *, void *));
+enum func_codes qsort2(void *arr, const size_t arr_len, const size_t elem_size, int (*comparator)(const void *, const void *));
 #endif

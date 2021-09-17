@@ -9,6 +9,7 @@
 void show_help(void){
 
 	FILE *helper_file = fopen("readme.txt", "r");
+
 	if(helper_file == NULL){
 		printf("file \"readme.txt\" was not found in the current directory\n"
 			   "||\tbrief description of the project\t||\n"
@@ -17,14 +18,10 @@ void show_help(void){
 		return;
 	}
 
-
-	char line[MAX_README_LINE_LEN];
-	while(fgets(line, MAX_README_LINE_LEN, helper_file) != NULL){
-		printf("%s", line);
-	}
+    display_file_content(helper_file);
 }
 
-enum func_codes swap(void *p_elem1, void *p_elem2, size_t size_elem){
+enum func_codes swap(void *p_elem1, void *p_elem2, const size_t size_elem){
 
    assert(p_elem1 != NULL);
    assert(p_elem2 != NULL);
@@ -41,36 +38,36 @@ enum func_codes swap(void *p_elem1, void *p_elem2, size_t size_elem){
    long long int *bstepper_elem2 = (long long int *)p_elem2;
 
    // элемент размера sizeof long long int должен помещаться в оставшееся место p_elem
-   for(; ((char*)(bstepper_elem1 + 1) - (char *)p_elem1 <= size_elem) && ((char*)(bstepper_elem2 + 1) - (char *)p_elem2 <= size_elem); bstepper_elem1++, bstepper_elem2++){
+   for(; (get_bytes(p_elem1, bstepper_elem1 + 1) <= size_elem) && (get_bytes(p_elem2, bstepper_elem2 + 1) <= size_elem); bstepper_elem1++, bstepper_elem2++){
       big_storage = *bstepper_elem2;
       *bstepper_elem2 = *bstepper_elem1;
       *bstepper_elem1 = big_storage;
    }
 
    // разные размеры переменных
-   assert(!(((char*)(bstepper_elem1 + 1) - (char *)p_elem1 <= size_elem) && ((char*)(bstepper_elem2 + 1) - (char *)p_elem2 <= size_elem)));
+   assert(!((get_bytes(p_elem1, bstepper_elem1 + 1) <= size_elem) && (get_bytes(p_elem2, bstepper_elem2 + 1) <= size_elem)));
 
    char small_storage = 0;
-
 
    char *sstepper_elem1 = (char *)bstepper_elem1;
    char *sstepper_elem2 = (char *)bstepper_elem2;
    
    // записанная часть p_elem не должна превосходить размер элемента
-   for(; (sstepper_elem1 - (char *)p_elem1 < size_elem) && (sstepper_elem2 - (char *)p_elem2 < size_elem); sstepper_elem1++, sstepper_elem2++){
+   for(; (get_bytes(p_elem1, sstepper_elem1 + 1) <= size_elem) && (get_bytes(p_elem2, sstepper_elem2 + 1) <= size_elem); sstepper_elem1++, sstepper_elem2++){
       small_storage = *sstepper_elem2;
       *sstepper_elem2 = *sstepper_elem1;
       *sstepper_elem1 = small_storage;
    }
 
    //разные размеры переменных
-   assert(!((sstepper_elem1 - (char *)p_elem1 < size_elem) && (sstepper_elem2 - (char *)p_elem2 < size_elem)));
+   assert(!((get_bytes(p_elem1, sstepper_elem1 + 1) <= size_elem) && (get_bytes(p_elem2, sstepper_elem2 + 1) <= size_elem)));
 
    return OK;
 }
 
 
 enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len){
+
     assert(file_name != NULL);
 
     assert(n_lines != NULL);
@@ -97,9 +94,10 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
         return EMPTY_FILE;
     }
 
-    // если на последней строчке нет символа переноса
-    if(prev_letter > 0){
+    // если на последней непустой строчке нет символа переноса
+    if((prev_letter > 0) && (prev_letter != '\n')){
         (*n_lines)++;
+        (*len)++;
     }
 
     fclose(text_file);
@@ -107,42 +105,25 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
     return OK;
 }
 
-int strcmp_reverse(const char * string1, const char * string2){
+enum func_codes display_file_content(FILE *input_file){
 
-    assert(string1 != NULL);
-    assert(string2 != NULL);
-    
-    if(string1 == string2){
-        return 0;
-    }
-    
-    char *str1_stepper = (char*)string1;
-    char *str2_stepper = (char*)string2;
-    
-    for(; *str1_stepper != '\0'; str1_stepper++){
-        ;
+    assert(input_file != NULL);
+
+    char line[MAX_README_LINE_LEN];
+    while(fgets(line, MAX_README_LINE_LEN, input_file) != NULL){
+        printf("%s", line);
     }
 
-    for(; *str2_stepper != '\0'; str2_stepper++){
-        ;
-    }
+    fseek(input_file, 0, SEEK_SET);
 
-    for(; (str1_stepper >= string1) && (str2_stepper >= string2); str2_stepper--, str1_stepper--){
-        if(*str1_stepper > *str2_stepper){
-            return 1;
-        }
-        else if(*str1_stepper < *str2_stepper){
-            return -1;
-        }
-    }
+    return OK;
+}
 
-    if((str1_stepper < string1) && (str2_stepper < string2)){
-        return 0;
-    }
-    else if(str1_stepper < string1){
-        return 1;
-    }
-    else{
-        return 0;
-    }
+inline size_t get_bytes(void *left_pointer, void *right_pointer){
+
+    return (char*)(right_pointer) - (char *)(left_pointer);
+}
+
+int isalnum_rus(int c){
+    return (isalnum(c) || ((c >= -64) && (c < 0)));
 }
