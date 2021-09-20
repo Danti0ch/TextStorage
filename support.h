@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 /// коды ошибок функций
 enum func_codes{ 
@@ -22,6 +23,14 @@ enum func_codes{
 
 /// максимальная длина строки для чтения из файла
 const int MAX_README_LINE_LEN = 1000;
+
+/// максимальная длина строки для чтения из файла
+const int MAX_INPUT_FILE_NAME_LEN = 100;
+
+/// ядовитые указатели
+enum poison_pointers{
+    P_AFTER_CALLOC = 2
+};
 
 /// выводит содержимое файла "readme.txt" в консоль
 void show_help(void);

@@ -86,22 +86,22 @@ enum func_codes create_mem_storage(text_storage *storage);
 /**
  * обертка для string_cmp с режимом STRAIGHT
  */
-int string_cmp_straight(const string *str1, const string *str2);
+int string_cmp_straight(const void*str1, const void*str2);
 
 /**
  * обертка для string_cmp с режимом REVERSE
  */
-int string_cmp_reverse(const string *str1, const string *str2);
+int string_cmp_reverse(const void*str1, const void*str2);
 
 /**
  * обертка для string_cmp с режимом ALNUM
  */
-int string_cmp_alnum(const string *str1, const string *str2);
+int string_cmp_alnum(const void*str1, const void*str2);
 
 /**
  * обертка для string_cmp с режимом ALNUM_REVERSE
  */
-int string_cmp_alnumReverse(const string *str1, const string *str2);
+int string_cmp_alnumReverse(const void*str1, const void*str2);
 
 /**
  * компаратор, сравнивает две строки(структуры) типа string

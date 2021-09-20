@@ -22,4 +22,5 @@
  * \return код возвращаемого значения из func_codes
  */
 enum func_codes qsort2(void *arr, const size_t arr_len, const size_t elem_size, int (*comparator)(const void *, const void *));
+
 #endif
