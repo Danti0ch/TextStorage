@@ -1,10 +1,15 @@
 #include <stdio.h>
 #include "text_storage.h"
 #include "qsort2.h"
+#include <time.h>
 
 // GITHUB PAGES
 
 int main(int argc, char const * const argv[]){
+
+	#ifdef EX_TIME
+	clock_t begin = clock();
+	#endif
 
 	int is_alnum_sorting = 0;
 	int argc_current = 1;
@@ -98,6 +103,11 @@ int main(int argc, char const * const argv[]){
 	clear_mem_storage(&storage);
 	
 	fclose(output_file);
+
+	#ifdef EX_TIME
+	clock_t end = clock();
+	printf("Execution time: %f\n", (double)(end - begin) / CLOCKS_PER_SEC);
+	#endif
 
 	return 0;
 }

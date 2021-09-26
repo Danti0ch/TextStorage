@@ -65,7 +65,8 @@ enum func_codes swap(void *p_elem1, void *p_elem2, const size_t size_elem){
    return OK;
 }
 
-// x6,5 faster than getc stuff
+// x6,5 faster than fgetc stuff
+#ifdef BUF_GETLEN
 enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len){
 
     assert(file_name != NULL);
@@ -117,7 +118,7 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
     return OK;
 }
 
-/*
+#else
 enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len){
 
     assert(file_name != NULL);
@@ -136,7 +137,7 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
     int next_letter = 0;
     int prev_letter = 0;
     
-    for(; (next_letter = fgetc(text_file)) != EOF; (*len)++, prev_letter = next_letter){
+    for(; (next_letter = getc(text_file)) != EOF; (*len)++, prev_letter = next_letter){
         if(next_letter == '\n'){
             (*n_lines)++;
         }
@@ -156,7 +157,8 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
 
     return OK;
 }
-*/
+#endif
+
 enum func_codes display_file_content(FILE *input_file){
 
     assert(input_file != NULL);
