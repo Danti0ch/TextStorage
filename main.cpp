@@ -11,63 +11,37 @@ int main(int argc, char const * const argv[]){
 	clock_t begin = clock();
 	#endif
 
-	int is_alnum_sorting = 0;
-	int argc_current = 1;
-
-	if((argc == 2) && strcmp("--help", argv[argc_current]) == 0){
-		show_help();
-		return 0;
-	}
-
 	char file_name[MAX_INPUT_FILE_NAME_LEN] = "roman.txt";
 
-	if((argc > 1) && (argv[argc_current][0] != '-') && (strlen(argv[argc_current]) < MAX_INPUT_FILE_NAME_LEN)){
-		strcpy(file_name, argv[argc_current]);
-		argc_current++;
-	}
+	int is_alnum_sorting = 0;
 
-	// checking the correction of file
-	FILE *input_file = fopen(file_name, "r");
-	if(input_file == NULL){
-		printf("No file found\n");
-		return 0;
-	}
-	fclose(input_file);
-
-	for(; argc_current < argc; argc_current++){
-		if(strcmp("--alnum", argv[argc_current]) == 0){
-			is_alnum_sorting = 1;
-		}
-		else{
-			printf("wrong flag\n");
-			return 0;
-		}
-	}
+	get_console_parms(argc, argv, file_name, &is_alnum_sorting);
 
 	text_storage storage = {};
 
 	get_text_storage(file_name, &storage);
 
+	FILE *output_file = fopen("output.txt", "w");
+
 	printf("straight sorting\n");
 
+	#ifdef STAND_QSORT
 	if(is_alnum_sorting){
-		#ifdef STAND_QSORT
-		//qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnum);
-		#else
-		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnum);
-		#endif
+		qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnum);
 	}
 	else{
-		#ifdef STAND_QSORT
-		//qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_straight);
-		#else
-		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_straight);
-		#endif
+		qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_straight);
 	}
+	#else
+	if(is_alnum_sorting){
+		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnum);
+	}
+	else{
+		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_straight);
+	}
+	#endif
 
 	printf("completed\n\n");
-
-	FILE *output_file = fopen("output.txt", "w");
 
 	fputs("\nSORTED TEXT\n\n", output_file);
 	
@@ -75,20 +49,21 @@ int main(int argc, char const * const argv[]){
 
 	printf("reverse sorting\n");
 
+	#ifdef STAND_QSORT
 	if(is_alnum_sorting){
-		#ifdef STAND_QSORT
-		//qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnumReverse);
-		#else
-		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnumReverse);
-		#endif
+		qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnumReverse);
 	}
 	else{
-		#ifdef STAND_QSORT
-		//qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_reverse);
-		#else
-		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_reverse);
-		#endif
+		qsort(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_alnumReverse);
 	}
+	#else
+	if(is_alnum_sorting){
+		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_reverse);
+	}
+	else{
+		qsort2(storage.p_lines, storage.num_lines, sizeof storage.p_lines[0], string_cmp_reverse);
+	}
+	#endif
 
 	printf("completed\n\n");
 

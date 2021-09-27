@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 /// коды ошибок функций
 enum func_codes{ 
@@ -80,5 +81,11 @@ inline size_t get_bytes(void *left_pointer, void *right_pointer);
  * 
  */
 int isalnum_rus(int c);
+
+/**
+ * считывает информацию о параметрах выполнения проекта из консоли
+ * 
+ */
+int get_console_parms(const int argc, char const * const argv[], char* file_name, int *is_alnum_sorting);
 
 #endif

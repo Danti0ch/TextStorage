@@ -66,7 +66,6 @@ enum func_codes swap(void *p_elem1, void *p_elem2, const size_t size_elem){
 }
 
 // x6,5 faster than fgetc stuff
-#ifdef BUF_GETLEN
 enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len){
 
     assert(file_name != NULL);
@@ -118,47 +117,6 @@ enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len
     return OK;
 }
 
-#else
-enum func_codes get_file_len(const char *file_name, size_t *n_lines, size_t *len){
-
-    assert(file_name != NULL);
-
-    assert(n_lines != NULL);
-    assert(len != NULL);
-    assert(len != n_lines);
-    
-    *len = 0;
-    *n_lines = 0;
-
-    FILE *text_file = fopen(file_name, "r");
-
-    assert(text_file != NULL);
-    
-    int next_letter = 0;
-    int prev_letter = 0;
-    
-    for(; (next_letter = getc(text_file)) != EOF; (*len)++, prev_letter = next_letter){
-        if(next_letter == '\n'){
-            (*n_lines)++;
-        }
-    }
-
-    if(*len == 0){
-        return EMPTY_FILE;
-    }
-
-    // если на последней непустой строчке нет символа переноса
-    if((prev_letter > 0) && (prev_letter != '\n')){
-        (*n_lines)++;
-        (*len)++;
-    }
-
-    fclose(text_file);
-
-    return OK;
-}
-#endif
-
 enum func_codes display_file_content(FILE *input_file){
 
     assert(input_file != NULL);
@@ -181,4 +139,43 @@ inline size_t get_bytes(void *left_pointer, void *right_pointer){
 int isalnum_rus(int c){
     
     return (isalnum(c) || ((c >= -64) && (c < 0)));
+}
+
+int get_console_parms(const int argc, char const * const argv[], char* file_name, int *is_alnum_sorting){
+    
+    assert(argc > 0);
+    assert(argv != NULL);
+
+    int argc_current = 1;
+
+    *is_alnum_sorting = 0;
+
+    if((argc == 2) && (strcmp("--help", argv[argc_current]) == 0)){
+        show_help();
+        return 0;
+    }
+
+    if((argc > 1) && (argv[argc_current][0] != '-') && (strlen(argv[argc_current]) < MAX_INPUT_FILE_NAME_LEN)){
+        strcpy(file_name, argv[argc_current]);
+        argc_current++;
+    }
+
+    // checking the correction of file
+    FILE *input_file = fopen(file_name, "r");
+    if(input_file == NULL){
+        printf("No file found\n");
+        return 0;
+    }
+    fclose(input_file);
+
+    for(; argc_current < argc; argc_current++){
+        if(strcmp("--alnum", argv[argc_current]) == 0){
+            *is_alnum_sorting = 1;
+        }
+        else{
+            printf("wrong flag\n");
+            return 0;
+        }
+    }
+    return 1;
 }
