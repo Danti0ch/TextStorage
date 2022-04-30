@@ -10,40 +10,56 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-#include "support.h"
 
-/// флаги, указывающие компаратору режим сортировки
-enum sort_flags{
-    STRAIGHT,       ///< прямая
-    REVERSE,        ///< обратная
-    ALNUM,          ///< прямая, учитываются только буквы и цифры
-    ALNUM_REVERSE   ///< обратная, учитываются только буквы и цифры
-};
+// TODO: добавить динамический размер???
+// TODO: обработка ошибок
+// TODO: одна инициализация буфера вместо 2х
+// TODO: интерефейсные функции
 
 /// хранит указатель на си строку и её длину
-struct string{
-    char *pointer;       ///< указатель на начало строки
-    size_t len;          ///< длина строки (strlen)
+struct word{
+    char  *pt;       ///< указатель на слово
+    size_t len;          ///< длина слова (strlen)
+};
+
+struct line_storage{
+
+    word*   p_words;
+    char*   p_line;
+    size_t  n_words;
+    size_t  len;
 };
 
 struct text_storage{ /// структура, необходимая для хранения группы строк
     size_t len_buf;       ///< количество символов в буфере
-    size_t num_lines;     ///< количество строк
+    size_t n_lines;     ///< количество строк
+    size_t n_words;     ///< количество слов
 
-    string *p_lines;      ///< массив строк типа string
-    char *buffer;         ///< буфер, в котором находится содержимое всех строк. каждая строка должна оканчиваться '\0'
+    line_storage* p_lines;      ///< массив структур, в которых хранится информация о строках
+    word*         p_words;      ///< массив слова типа string
+    char          *buffer;         ///< буфер, в котором находится содержимое всех сдлв. каждое слово должна оканчиваться '\0'
 };
 
+// TODO: -> log.h
+enum err_code{ 
+    R,
+    MEM_ALLOC_ERROR,
+    EMPTY_FILE,
+};
+
+const uint MAX_N_WORDS_IN_LINE  = 10000;
+
 /**
- * считывает содержимое файла file_name в структуру storage
+ * @brief считываем содержимое файла в структуру text_storage
  * 
- * \param file_name имя файла
- * \param storage структура, в которую нужно считать содержимое
- * 
- * \return код возвращаемого значения из func_codes
+ * @param file_name имя файла
+ * @return text_storage* 
  */
-enum func_codes get_text_storage(const char *file_name, text_storage *storage);
+text_storage* GetStorage(const char *file_name);
+
+text_storage* GetStorage(const char *buffer, const size_t buf_size);
+
+text_storage* GetStorage(const text_storage* src_storage);
 
 /**
  * записывает в файл output_file строки из структуры storage, в порядке массива p_lines
@@ -53,7 +69,7 @@ enum func_codes get_text_storage(const char *file_name, text_storage *storage);
  * 
  * \return код возвращаемого значения из func_codes
  */
-enum func_codes write_storage(FILE *output_file, text_storage *storage);
+//              ERR_CODE WriteStorage(FILE *output_file, const text_storage *storage);
 
 /**
  * записывает в файл output_file символьный массив(буфер) из storage
@@ -63,7 +79,7 @@ enum func_codes write_storage(FILE *output_file, text_storage *storage);
  * 
  * \return код возвращаемого значения из func_codes
  */
-enum func_codes write_buffer_of_storage(FILE *output_file, text_storage *storage);
+err_code WriteBufferOfStorage(FILE *output_file, const text_storage *storage);
 
 /**
  * функция очищает память, которая была динамически присвоена элементам storage в create_mem_storage
@@ -72,47 +88,11 @@ enum func_codes write_buffer_of_storage(FILE *output_file, text_storage *storage
  * 
  * \return код возвращаемого значения из func_codes
  */ 
-enum func_codes clear_mem_storage(text_storage *storage);
+err_code TextStorageRemove(text_storage *storage);
 
-/**
- * функция выделяет память для указателей storage. размер необходимый памяти задаётся storage.buf_len и storage.num_lines
- * 
- * \param storage структура text_storage для которой нужно выделить память
- * 
- * \return код возвращаемого значения из func_codes
- */ 
-enum func_codes create_mem_storage(text_storage *storage);
+// TODO: sописание
+void MakeUniqueData(text_storage* storage);
 
-/**
- * обертка для string_cmp с режимом STRAIGHT
- */
-int string_cmp_straight(const void*str1, const void*str2);
+void WriteWords(const text_storage* storage, const char* file_name);
 
-/**
- * обертка для string_cmp с режимом REVERSE
- */
-int string_cmp_reverse(const void*str1, const void*str2);
-
-/**
- * обертка для string_cmp с режимом ALNUM
- */
-int string_cmp_alnum(const void*str1, const void*str2);
-
-/**
- * обертка для string_cmp с режимом ALNUM_REVERSE
- */
-int string_cmp_alnumReverse(const void*str1, const void*str2);
-
-/**
- * компаратор, сравнивает две строки(структуры) типа string
- * 
- * \param str1, str2 string структуры, которые нужно сравнить
- * \param mode режим сортировки, заданный константной из набора sort_flags
- * 
- * \return  1 если str1 > str2
- * \return -1 если str1 < str2
- * \return  0 если str1 == str2
- */
-int string_cmp(const string *str1, const string *str2, enum sort_flags mode);
-
-#endif
+#endif //TEXT_STORAGE_H
